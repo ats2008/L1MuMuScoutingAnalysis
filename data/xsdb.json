@@ -1,0 +1,10 @@
+{
+    "DY1Jet_Mll_1To10"       :   5.376e+05 ,
+    "DY_Mll_10To50"          :   1.683e+04,  
+    "DARK_PHOTON_M1"         :   25.94, 
+    "DARK_PHOTON_M2"         :   24.81, 
+    "DARK_PHOTON_M4"         :   13.96, 
+    "DARK_PHOTON_M8"         :   5.313,
+    "MinBias"                :  420.00e6
+}
+

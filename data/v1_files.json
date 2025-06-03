@@ -1,0 +1,22 @@
+{     
+     "DARK_PHOTON_M1" :       ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v4_darkPhotonUpd/DARK_PHOTON_M1.root"]  ,  
+     "DARK_PHOTON_M2" :       ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v4_darkPhotonUpd/DARK_PHOTON_M2.root"]  , 
+     "DARK_PHOTON_M4" :       ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v4_darkPhotonUpd/DARK_PHOTON_M4.root"]  ,  
+     "DARK_PHOTON_M8" :       ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v4_darkPhotonUpd/DARK_PHOTON_M8.root"]  ,  
+     "DY1Jet_Mll_1To10"   :   ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/DY1Jet_Mll_1To10.root"]        ,  
+     "DY_Mll_10To50"      :   ["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/DY_Mll_10To50.root"]           ,  
+     "QCD15To20_Mu5Enriched" :["/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v5_genVertex/QCD15To20_Mu5Enriched.root"],       
+"MinBias" : [
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_0.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_1.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_2.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_3.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_4.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_5.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_6.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_7.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_8.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_9.root",   
+    "/eos/cms/store/group/dpg_trigger/comm_trigger/L1Trigger/athachay/phase2/l1_fpInputs/phase2Spring24/15_0_1_pre2/v3_z0Upd/MinBias_10.root"
+    ] 
+}
