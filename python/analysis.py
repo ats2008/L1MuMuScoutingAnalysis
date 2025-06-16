@@ -1,4 +1,5 @@
 import uproot as urt
+import pickle as pkl
 import json,os
 import numpy as np
 import awkward as ak
@@ -19,6 +20,7 @@ file_list={
     'DPhoton_M8'       : base+'/DARK_PHOTON_M8.root',
 }
 
+branchesToStore=['selected_dimu','selected_dimu_mu1','selected_dimu_mu2']
 
 def main():
     parser = argparse.ArgumentParser()
@@ -94,29 +96,62 @@ def main():
     histStore["nPuppi"]  =getHistograms(data.nL1PuppiCands,np.arange(0.0,100,5),"nPuppi","Number of puppi candidates prior to any selection")
     
     dataStore=addGenMatchedMuonInformation(dataStore,pTMinMuon=2.0,etaMax=2.4)
-    dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4)
+    #dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,puppiIsoThr=None)
+    dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,puppiIsoThr=0.2001)
     #dataStore=addGenMatchedMuonInformation(dataStore,pTMinMuon=4.0,etaMax=1.9)
     #dataStore=addSelectedDimuons(dataStore,pTMinMuon=4.0,etaMax=1.9)
     
+    dataStore=addPFIsolations(dataStore)
+    dataStore=addPuppiIsolation(dataStore)
+
     cat_config={}
-    cat_config['highptMuMu']={}
-    cat_config['highptMuMu']['min_pt_mu1']=4.0
-    cat_config['highptMuMu']['min_pt_mu2']=4.0
-    cat_config['highptMuMu']['max_eta_mu1']=1.9
-    cat_config['highptMuMu']['max_eta_mu2']=1.9
+    cat_config['highptMuMuCentral']={}
+    cat_config['highptMuMuCentral']['min_pt_mu1']=4.0
+    cat_config['highptMuMuCentral']['min_pt_mu2']=4.0
+    cat_config['highptMuMuCentral']['max_eta_mu1']=1.9
+    cat_config['highptMuMuCentral']['max_eta_mu2']=1.9
     
-    highpt_data,rest=getCategories( dataStore[tag] ,cat_config['highptMuMu'] )
+    cat_config['highptMuMuForward']={}
+    cat_config['highptMuMuForward']['min_pt_mu1']=4.0
+    cat_config['highptMuMuForward']['min_pt_mu2']=4.0
+    cat_config['highptMuMuForward']['min_eta_mu1']=1.9
+    cat_config['highptMuMuForward']['min_eta_mu2']=1.9
+    cat_config['highptMuMuForward']['max_eta_mu1']=2.5
+    cat_config['highptMuMuForward']['max_eta_mu2']=2.5
+    
+    cat_config['MuMuCentral']={}
+    cat_config['MuMuCentral']['max_eta_mu1']=1.9
+    cat_config['MuMuCentral']['max_eta_mu2']=1.9
+    
+ 
+    cat_config['MuMuForeward']={}
+    cat_config['MuMuForeward']['min_eta_mu1']=1.9
+    cat_config['MuMuForeward']['min_eta_mu2']=1.9
+    cat_config['MuMuForeward']['max_eta_mu1']=2.5
+    cat_config['MuMuForeward']['max_eta_mu2']=2.5
+    
+ 
     
     categorizedData={}
-    categorizedData['highptMuMu']=highpt_data
-    categorizedData['rest']=rest
     categorizedData['inclusive']=dataStore[tag]
+    current=categorizedData['inclusive']
+    for ky in cat_config:
+        current,rest=getCategories( current ,cat_config[ky] )
+        categorizedData[ky]=current
+        print("CAT : ",ky)
+        print("   > Min pt " ,ak.min( current['selected_dimu_mu1'].pt ) ," / ", ak.min( current['selected_dimu_mu2'].pt )   )
+        print("   > Max pt " ,ak.max( current['selected_dimu_mu1'].pt ) ," / ", ak.max( current['selected_dimu_mu2'].pt )   )
+        print("   > Min eta ",ak.min( np.abs(current['selected_dimu_mu1'].eta) ) ," / ", ak.min( np.abs(current['selected_dimu_mu2'].eta ) )  )
+        print("   > Max eta ",ak.max( np.abs(current['selected_dimu_mu1'].eta) ) ," / ", ak.max( np.abs(current['selected_dimu_mu2'].eta ) )  )
+        current=rest
+    categorizedData['rest']=rest
     
-    for ky in list(cat_config.keys())+['rest','inclusive']:
+    for ky in list(categorizedData.keys()):
         print(f"Processing {ky} with {len(categorizedData[ky])} events")
-        data=cleanEmptyDimuons(data)
-
         data=categorizedData[ky]
+        data=cleanEmptyDimuons(data,cleanEvents=True)
+        print(f"    After cleaning  {len(data)} events remains")
+
         ARRAY=ak.flatten(data['matchedDimuons'].mass)
         BINS=np.arange(0.0,20.0,0.1)
         NAME="genMatchedDimuMass"
@@ -160,24 +195,131 @@ def main():
         DOC="deltaR between nuons of dimuon candidates, after selection"
         histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
         
-        ARRAY=data['selected_dimu_mu1'].d0
-        BINS=np.arange(0.0,4.0,0.02)
-        NAME="dimuonsMu1_d0"
-        DOC="d0 / mu1 of  dimuon candidates, after selection"
-        histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
-    
-        ARRAY=data['selected_dimu_mu2'].d0
-        BINS=np.arange(0.0,4.0,0.02)
-        NAME="dimuonsMu2_d0"
-        DOC="d0 / mu2 of  dimuon candidates, after selection"
-        histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
-    
+        for muTag in ["mu1","mu2"]:
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].pt
+            BINS=np.arange(0.0,40.0,0.2)
+            NAME=f"dimuons_{muTag}_pt"
+            DOC=f"pt {muTag} of  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].eta
+            BINS=np.arange(-3.0,3.0,0.1)
+            NAME=f"dimuons_{muTag}_eta"
+            DOC=f"eta {muTag} of  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].d0
+            BINS=np.arange(0.0,4.0,0.02)
+            NAME=f"dimuons_{muTag}_d0"
+            DOC=f"d0 / {muTag} of  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].iso
+            BINS=np.arange(0.0,10.0,0.2)
+            NAME=f"dimuons_{muTag}_tkIsoSum"
+            DOC=f"tk Iso Sum of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].iso/data[f'selected_dimu_{muTag}'].pt
+            BINS=np.arange(0.0,5.0,0.1)
+            NAME=f"dimuons_{muTag}_tkRelIso"
+            DOC=f"tk relative Iso  of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pf_iso_sum
+            BINS=np.arange(0.0,10.0,0.2)
+            NAME=f"dimuons_{muTag}_pfIsoSum"
+            DOC=f"pf Iso Sum of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pf_rel_iso
+            BINS=np.arange(0.0,5.0,0.1)
+            NAME=f"dimuons_{muTag}_pfRelIso"
+            DOC=f"pf relative Iso  of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].pf_nPartInCone
+            BINS=np.arange(-0.5,50.6,1.0)
+            NAME=f"dimuons_{muTag}_pfNParticleInCone"
+            DOC=f"number of pf candidates in cone of of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pfNeutral_iso_sum
+            BINS=np.arange(0.0,10.0,0.2)
+            NAME=f"dimuons_{muTag}_pfNeutralIsoSum"
+            DOC=f"pfNeutral Iso Sum of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pfNeutral_rel_iso
+            BINS=np.arange(0.0,5.0,0.1)
+            NAME=f"dimuons_{muTag}_pfNeutralRelIso"
+            DOC=f"pfNeutral relative Iso  of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].pfNeutral_nPartInCone
+            BINS=np.arange(-0.5,50.6,1.0)
+            NAME=f"dimuons_{muTag}_pfNeutralNParticleInCone"
+            DOC=f"number of pfNeutral candidates in cone of of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pfCharged_iso_sum
+            BINS=np.arange(0.0,10.0,0.2)
+            NAME=f"dimuons_{muTag}_pfChargedIsoSum"
+            DOC=f"pfCharged Iso Sum of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].pfCharged_rel_iso
+            BINS=np.arange(0.0,5.0,0.1)
+            NAME=f"dimuons_{muTag}_pfChargedRelIso"
+            DOC=f"pfCharged relative Iso  of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].pfCharged_nPartInCone
+            BINS=np.arange(-0.5,50.6,1.0)
+            NAME=f"dimuons_{muTag}_pfChargedNParticleInCone"
+            DOC=f"number of pfCharged candidates in cone of of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].puppi_iso_sum
+            BINS=np.arange(0.0,10.0,0.2)
+            NAME=f"dimuons_{muTag}_puppiIsoSum"
+            DOC=f"puppi Iso Sum of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
+            ARRAY=data[f'selected_dimu_{muTag}'].puppi_rel_iso
+            BINS=np.arange(0.0,5.0,0.1)
+            NAME=f"dimuons_{muTag}_puppiRelIso"
+            DOC=f"puppi relative Iso  of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+            
+            ARRAY=data[f'selected_dimu_{muTag}'].puppi_nPartInCone
+            BINS=np.arange(-0.5,50.6,1.0)
+            NAME=f"dimuons_{muTag}_puppiNParticleInCone"
+            DOC=f"number of puppi candidates in cone of of {muTag}  dimuon candidates, after selection"
+            histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+
         ofname=f"{prefix}/out_data_{ky}_{tag}.json"   
         os.system(f"mkdir  -p {prefix}")
         print(f"exporting to {ofname}")
     
+        config_dict["HISTSTORE"]=histStore
+
         with open(ofname,"w") as f:
             json.dump(config_dict,f,indent=4)
+        
+        #if args.exportFile:
+    if False:
+        ofname=f"{prefix}/out_data_{ky}_{tag}.pkl"   
+        dataExport={}
+        for ky in categorizedData:
+            data=categorizedData[ky]
+            data=cleanEmptyDimuons(data,cleanEvents=True)
+            dataExport[ky]=data[branchesToStore]
+        print("Exporting file : ",ofname)
+        with open(ofname,'wb') as f:
+            pkl.dump(dataExport,f)
+
 
 if __name__=='__main__':
     main()

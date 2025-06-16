@@ -1,20 +1,21 @@
 import json,glob
 import argparse
 import numpy as np
+import util as utl
 
 XSDBFILE='data/xsdb.json'
 xsdb=None
 with open(XSDBFILE) as f:
     xsdb=json.load(f)
 
-def main():
+def getSummary():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--inputFile", help="inputFile")
     parser.add_argument("-l","--lumi", help=" Target luminosity",default=400.0e3,type=float)
     parser.add_argument("-x","--xs", help=" Input cross-section",default=1.0,type=float)
     parser.add_argument("-n","--hname", help="hitogram to check selections ",default='dimuonMass')
     parser.add_argument("-p","--proc", help="Process name to get xs from",default=None)
-    parser.add_argument("--xmin", help=" min bound in histogram",default=-1e6,type=float)
+    parser.add_argument("--xmin", help=" min bound in histogram",default=0.01,type=float)
     parser.add_argument("--xmax", help=" max bound in histogram",default=1.0e6,type=float)
     parser.add_argument("-o","--outFile", help="Output fileout",default='merjed_output.json')
     parser.add_argument(  "--printAllHistograms", help="print the details of all the available histograms",action='store_true')
@@ -58,17 +59,18 @@ def main():
     if xs is not None:
         nExpected     = npass/ntot * lumi * xs
         nExpected_err = nExpected/np.sqrt(npass+1e-15)
-        if nExpected > 1e8:
-            yld=f"{nExpected/1e9:.2f} +/- {nExpected_err/1e9:.2f} B"
-        elif nExpected > 1e5:
-            yld=f"{nExpected/1e6:.2f} +/- {nExpected_err/1e6:.2f} M"
-        elif nExpected > 1e3:
-            yld=f"{nExpected/1e6:.2f} +/- {nExpected_err/1e6:.2f} K"
-        else :
-            yld=f"{nExpected:.2f} +/- {nExpected_err:.2f} K"
-            
-        print("  target lumi : ",lumi/1e3, " /fb   for xs  = ",xs,"pb Expected  yield : ",yld)
-   
+        yld=utl.getYieldInHumanReadableString(nExpected,nExpected_err)           
+        print("  target lumi : ",lumi/1e3, " /fb   for xs  = ",f"{xs:.3e}","pb Expected  yield : ",yld)
+    odata={}
+    odata['nExpected']=float(nExpected)
+    odata['nExpected_err']=float(nExpected_err)
+    odata['efficiency']=float(eff)
+    with open('summary.json','w') as f:
+        json.dump(odata,f)
+    return odata
+
+def main():
+    getSummary()
 
 if __name__=='__main__':
     main()

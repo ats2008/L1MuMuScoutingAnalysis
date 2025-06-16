@@ -7,8 +7,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--inputFiles", help="inputFile",default='')
     parser.add_argument("-s","--searchString", help=" search string",default=None)
-    parser.add_argument("-t","--tag", help=" tag",default='v0')
-    parser.add_argument("-o","--outFile", help="Output fileout",default='merjed_output.json')
+    #parser.add_argument("-t","--tag", help=" tag",default='v0')
+    parser.add_argument("-o","--outFile", help="Output json file",default='merjed_output.json')
     args = parser.parse_args()
     
     inputFiles={}
@@ -20,7 +20,8 @@ def main():
         print("Search string : ",searchString)
         flist += glob.glob(searchString) 
     print("     n-Files  : ",len(flist))
-    inputFiles[args.tag]=flist
+    #inputFiles[args.tag]=flist
+    inputFiles['def']=flist
     hist_store={}
     for ky in inputFiles:
         hist_store[ky]=[]

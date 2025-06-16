@@ -5,6 +5,7 @@
     "DARK_PHOTON_M2"         :   24.81, 
     "DARK_PHOTON_M4"         :   13.96, 
     "DARK_PHOTON_M8"         :   5.313,
-    "MinBias"                :  420.00e6
+    "MinBias"                :  420.00e6,
+    "QCD15To20_Mu5Enriched" : 0.0
 }
 
