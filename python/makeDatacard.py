@@ -17,10 +17,10 @@ parser.add_argument("-g","--getInclusiveShape", help="use inclusive shape",defau
 args = parser.parse_args()
 
 masssPoints={}
-masssPoints['DARK_PHOTON_M1']=(1.0-0.2,1.0+0.2)
-masssPoints['DARK_PHOTON_M2']=(2.0-0.2,2.0+0.2)
-masssPoints['DARK_PHOTON_M4']=(4.0-0.2,4.0+0.2)
-masssPoints['DARK_PHOTON_M8']=(8.0-0.2,8.0+0.2)
+masssPoints['DARK_PHOTON_M1']=(1.0-0.25,1.0+0.25)
+masssPoints['DARK_PHOTON_M2']=(2.0-0.25,2.0+0.25)
+masssPoints['DARK_PHOTON_M4']=(4.0-0.25,4.0+0.25)
+masssPoints['DARK_PHOTON_M8']=(8.0-0.25,8.0+0.25)
 
 def pad(s,length=12,sp=" ", ):
     nspace = max(1, length - len(s))
