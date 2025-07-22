@@ -160,8 +160,8 @@ def run_summaryAnalyzer():
 
 
 def main():
-    mode='summary'
     mode='analysis'
+    mode='summary'
     if mode=='analysis':
         run_histMaker()
     if mode=='summary':
