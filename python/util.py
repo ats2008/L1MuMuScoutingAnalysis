@@ -137,17 +137,25 @@ def addAllDimuonCombinations(dataStore):
 
     return dataStore
     
-def addSelectedDimuonsWithIsoCut(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,puppiIsoThr=None):
+def addSelectedDimuonsWithIsoCut(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,puppiIsoThr=None,pfIsoThr=None):
     print("Making the selected dimuon pairs ")
     for tag in dataStore:
         print(" Processing  ",tag)
         data = dataStore[tag]
+        mask= data.all_dimuons_m1.pt > -1
         if puppiIsoThr is not None:
             mu1_iso_mask = data.all_dimuons_m1.puppi_rel_iso < puppiIsoThr
             mu2_iso_mask = data.all_dimuons_m2.puppi_rel_iso < puppiIsoThr
             mask = mask & mu1_iso_mask
             mask = mask & mu2_iso_mask
-
+        if puppiIsoThr is not None:
+            mu1_iso_mask = data.all_dimuons_m1.pf_rel_iso < pfIsoThr
+            mu2_iso_mask = data.all_dimuons_m2.pf_rel_iso < pfIsoThr
+            mask = mask & mu1_iso_mask
+            mask = mask & mu2_iso_mask
+        data["all_dimuons"]=data["all_dimuons"][mask]
+        data["all_dimuons_m1"]=data["all_dimuons_m1"][mask]
+        data["all_dimuons_m2"]=data["all_dimuons_m2"][mask]
 
 def addSelectedDimuons(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,doDRSelection=False,d0Max=-1e4,puppiIsoThr=None,pfIsoThr=None):
     dataStore=addAllDimuonCombinations(dataStore)
