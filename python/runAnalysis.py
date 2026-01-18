@@ -15,49 +15,6 @@ parser.add_argument("-t","--isTest", help="execute the test command",action='sto
 parser.add_argument("--isTest2", help="execute the test command",action='store_true')
 #args = parser.parse_args()
 
-def run_histMaker():
-    cmd_tpl='python3 python/analysis.py -i @@FILE   -t @@TAG    -d @@DEST --doc "@@DOC"'
-    test_ext=" -e 100"
-    driver_file="data/v1_files.json"
-    #driver_file="data/v2_with5parTraking_files.json"
-    
-    with open(driver_file) as f:
-        fileMap=json.load(f)
-    
-    parser.add_argument("-p","--procs", help="Procsses to process",default=None)
-    args = parser.parse_args()
-    procs=args.procs
-    if procs is not None:
-        procs=procs.split("/")
-    base=f"results/analysis/{args.ver}/"
-    doc=args.doc
-        
-    for proc in fileMap:
-        if procs is not None:
-            if proc not in procs: continue 
-
-        for i,fl in enumerate(fileMap[proc]):
-    
-            destination=base+f'{proc}/parts/'
-            tag=proc+f'_{i}'
-            if len(fileMap[proc])==1:
-                destination=base+f'{proc}/'
-                tag=proc
-            cmd=str(cmd_tpl)
-            cmd=cmd.replace("@@FILE",fl)
-            cmd=cmd.replace("@@TAG",tag)
-            cmd=cmd.replace("@@DEST",destination)
-            cmd=cmd.replace("@@DOC",doc)
-            if args.isTest:
-               cmd+=test_ext 
-            print(cmd)
-            if args.exec:
-                os.system(cmd)
-    
-            if args.isTest:
-                break
-        if args.isTest2:
-            break
 def run_summaryAnalyzer():
     
     from printSummary import getSummary
@@ -161,13 +118,7 @@ def run_summaryAnalyzer():
 
 
 def main():
-    mode='summary'
-    mode='analysis'
-    if mode=='analysis':
-        run_histMaker()
-    if mode=='summary':
-        run_summaryAnalyzer()
-    #run_summaryAnalyzer()
+    run_summaryAnalyzer()
 
 if __name__=='__main__':
     main()
