@@ -33,10 +33,15 @@ args = parser.parse_args()
 
 plotIdx=args.plotIdx
 
-ALL_CATS=['highptMuMuCentral', 'highptMuMuForward', 'MuMuCentral', 'MuMuForeward','rest','inclusive']
-CATLIST=['highptMuMuCentral','highptMuMuForward','MuMuCentral','MuMuForeward','inclusive','rest']
+ALL_CATS=['highptMuMuCentral', 'highptMuMuForward', 'MuMuCentral', 'MuMuForeward','inclusive','rest']
+CATLIST =['highptMuMuCentral', 'highptMuMuForward', 'MuMuCentral', 'MuMuForeward','inclusive','rest']
+ALL_CATS=['highptMuMu','inclusive','rest']
+CATLIST =['highptMuMu','inclusive','rest']
+ALL_CATS=['MuMuCentral','MuMuForeward','inclusive','rest']
+CATLIST =['MuMuCentral','MuMuForeward','inclusive','rest']
 signalSamples=['DARK_PHOTON_M1', 'DARK_PHOTON_M2', 'DARK_PHOTON_M4', 'DARK_PHOTON_M8']
-bkgSamples=['DY_Mll_10To50','DY1Jet_Mll_1To10',  'MinBias'] # 'QCD15To20_Mu5Enriched']
+#bkgSamples=['DY_Mll_10To50','DY1Jet_Mll_1To10',  'MinBias'] # 'QCD15To20_Mu5Enriched']
+bkgSamples=['DY1Jet_Mll_1To10',  'MinBias'] # 'QCD15To20_Mu5Enriched']
 
 base='results/analysis/v2p1/'
 prefix='results/plots/v2p1/'
@@ -135,7 +140,7 @@ if plotIdx==2:
                           histtype="fill",label=histsSig['label'],ax=ax[i]
                         )
         #     break
-        for i,_ in enumerate(ax):
+        for i,_ in enumerate(ALL_CATS):
             ax[i].semilogy()
             ax[i].set_title(ALL_CATS[i],fontsize=10)
             ax[i].legend(loc=1,ncol=2,fontsize=10)
@@ -174,7 +179,7 @@ if plotIdx==1:
                           histtype="fill",label=histsSig['label'],ax=ax[i]
                         )
         #     break
-        for i,_ in enumerate(ax):
+        for i,_ in enumerate(ALL_CATS):
             ax[i].semilogy()
             ax[i].set_title(ALL_CATS[i],fontsize=10)
             ax[i].legend(loc=1,ncol=2,fontsize=10)
@@ -230,7 +235,7 @@ if plotIdx==3:
                         )
         
         #     break
-        for i,_ in enumerate(ax):
+        for i,_ in enumerate(ALL_CATS):
         #     ax[i].semilogy()
             ax[i].set_title(ALL_CATS[i],fontsize=10)
             ax[i].legend(loc=1,ncol=2,fontsize=13)
@@ -282,7 +287,7 @@ if plotIdx==4:
                         )
         
         #     break
-        for i,_ in enumerate(ax):
+        for i,_ in enumerate(ALL_CATS):
         #     ax[i].semilogy()
             ax[i].set_title(ALL_CATS[i],fontsize=10)
             ax[i].legend(loc=1,ncol=2,fontsize=13)
@@ -329,7 +334,7 @@ if plotIdx==5:
                     )
     
     #     break
-    for i,_ in enumerate(ax):
+    for i,_ in enumerate(ALL_CATS):
     #     ax[i].semilogy()
         ax[i].set_title(ALL_CATS[i],fontsize=10)
         ax[i].legend(loc=1,ncol=2,fontsize=13)
@@ -366,7 +371,7 @@ if plotIdx==6:
                           histtype="fill",label=histsSig['label'],ax=ax[i]
                         )
         #     break
-        for i,_ in enumerate(ax):
+        for i,_ in enumerate(ALL_CATS):
             ax[i].semilogy()
             ax[i].set_title(ALL_CATS[i],fontsize=10)
             ax[i].legend(loc=1,ncol=2,fontsize=10)

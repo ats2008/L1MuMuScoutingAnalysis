@@ -5,8 +5,8 @@ import glob
 import numpy as np
 from util import getYieldInHumanReadableString
 
-lumi=400e3
 lumi=1e3
+lumi=400e3
 
 with open("data/xsdb.json") as f:
     xsData=json.load(f)
@@ -202,7 +202,7 @@ for sproc in signalProcs:
             npass=np.sum(counts[mask[:-1]])
             nExpected     = npass/ntot * lumi * xs
             nExpected_err = nExpected/np.sqrt(npass+1e-15)
-
+            print(f"  > {proc}/{cat} : {npass=}  , {ntot=}")
             if args.getInclusiveShape:
                 histStore_=histStore
                 histStore=data_dict_procWise[proc]['inclusive']
@@ -210,13 +210,15 @@ for sproc in signalProcs:
                 mask=np.logical_and( binx < xmax , binx >= xmin)
                 counts=np.array(histStore["HISTSTORE"][KHY]['counts'])
                 npass=np.sum(counts[mask[:-1]])
-                eff = npass/ntot
-                
+                mask       = np.logical_and( binx < 1e6 , binx >0)
+                eff = npass/np.sum( np.array(histStore["HISTSTORE"][KHY]['counts'])[mask[:-1]]  )
+                #print(f"      {cat}/{proc} but inc eff : {eff:.6f} , nc : {npass} ")               
                 histStore=histStore_
                 counts     = np.array(histStore["HISTSTORE"][KHY]['counts'])
                 mask       = np.logical_and( binx < 1e6 , binx >0)
                 npass      = np.sum(counts[mask[:-1]])
-                nExpected  = npass/ntot * lumi * xs
+                nExpected  = npass/ntot * lumi * xs * eff
+                #print(f"       {cat}/{proc} whole eff for cat eff : {npass*eff/ntot:.6f} , nc : {npass} ")               
 
                 nExpected_err = nExpected/np.sqrt(npass+1e-15)
 

@@ -90,7 +90,7 @@ def addGenMatchedMuonInformation(dataStore,pTMinMuon=2.0,etaMax=2.4):
         dR=gm.deltaR(tm)
         midx=ak.argmin(dR,axis=-1,keepdims=True)
         drMins=dR[midx]
-        matchedMask=drMins<0.1
+        matchedMask=drMins<0.02
         
         l1SignalMuons=tm[midx][matchedMask]
         l1SignalMuons=ak.flatten(l1SignalMuons,axis=-1)
@@ -100,10 +100,15 @@ def addGenMatchedMuonInformation(dataStore,pTMinMuon=2.0,etaMax=2.4):
         
         # Assignment
         dimu=mu1_dimu_+mu2_dimu_
+        data['genMuonCands']=gen_muons
+
+
         data['matchedDimuons']=dimu
     
         data['matchedDimuons_mu1']=mu1_dimu_
         data['matchedDimuons_mu2']=mu2_dimu_
+        data['matchedDimuons_m1']=mu1_dimu_
+        data['matchedDimuons_m2']=mu2_dimu_
     return dataStore   
  
 def addAllDimuonCombinations(dataStore):
@@ -156,6 +161,106 @@ def addSelectedDimuonsWithIsoCut(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask
         data["all_dimuons"]=data["all_dimuons"][mask]
         data["all_dimuons_m1"]=data["all_dimuons_m1"][mask]
         data["all_dimuons_m2"]=data["all_dimuons_m2"][mask]
+
+def addGenSelectedDimuons(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,doDRSelection=False,d0Max=-1e4,puppiIsoThr=None,pfIsoThr=None):
+    #dataStore=addAllDimuonCombinations(dataStore)
+
+    print("Making the selected genmatched dimuon pairs ")
+
+    for tag in dataStore:
+        print(" Processing  ",tag)
+        data = dataStore[tag]
+    
+        pt1_overM_mask = data.matchedDimuons_m1.pt / data.matchedDimuons.mass > 0.25
+        pt2_overM_mask = data.matchedDimuons_m2.pt / data.matchedDimuons.mass > 0.25
+    
+        mu1_id_mask = data.matchedDimuons_mu1.tightId > 0.5
+        mu2_id_mask = data.matchedDimuons_mu2.tightId > 0.5
+
+        mu1_pt_mask = data.matchedDimuons_mu1.pt > pTMinMuon
+        mu2_pt_mask = data.matchedDimuons_mu2.pt > pTMinMuon
+
+        mu1_eta_mask = np.abs(data.matchedDimuons_mu1.eta) < etaMax
+        mu2_eta_mask = np.abs(data.matchedDimuons_mu2.eta) < etaMax
+
+        deltaZMask = np.abs(data.matchedDimuons_mu1.z0 - data.matchedDimuons_mu2.z0) < 0.5
+    
+        mask = pt1_overM_mask & pt2_overM_mask
+        mask = mask & mu1_id_mask
+        mask = mask & mu2_id_mask
+        
+        mask = mask & mu1_pt_mask
+        mask = mask & mu2_pt_mask
+        
+        mask = mask & mu1_eta_mask
+        mask = mask & mu2_eta_mask
+
+        mask = mask & deltaZMask
+        
+        if addTkIsoMask:
+            mu1_iso_mask = data.matchedDimuons_mu1.iso < 0.5
+            mu2_iso_mask = data.matchedDimuons_mu2.iso < 0.5
+            mask = mask & mu1_iso_mask
+            mask = mask & mu2_iso_mask
+ 
+        if d0Max > 0:
+            mu1_d0_mask = data.matchedDimuons_mu1.d0 < d0Max
+            mu2_d0_mask = data.matchedDimuons_mu2.d0 < d0Max
+            mask = mask & mu1_d0_mask
+            mask = mask & mu2_d0_mask
+            
+        if doDRSelection:
+            mumu_deltaR_mask = data.matchedDimuons_mu1.deltaR( data.matchedDimuons_mu2  ) <  1.3
+            mask = mask & mumu_deltaR_mask
+    
+        data["genselected_dimu"]    = data["matchedDimuons"][mask]
+        data["genselected_dimu_mu1"]= data["matchedDimuons_mu1"][mask]
+        data["genselected_dimu_mu2"]= data["matchedDimuons_mu2"][mask]
+
+        if puppiIsoThr is not None:
+            if 'puppi_rel_iso' not in data.genselected_dimu_mu1.fields:
+                data=addPuppiIsolation({'sel':data})['sel']
+            mu1_iso_mask = data.genselected_dimu_mu1.puppi_rel_iso < puppiIsoThr
+            mu2_iso_mask = data.genselected_dimu_mu2.puppi_rel_iso < puppiIsoThr
+            mask =  mu1_iso_mask & mu2_iso_mask
+            data["genselected_dimu"]    =     data["genselected_dimu"][mask]     
+            data["genselected_dimu_mu1"]=     data["genselected_dimu_mu1"][mask] 
+            data["genselected_dimu_mu2"]=     data["genselected_dimu_mu2"][mask] 
+
+        if pfIsoThr is not None:
+            if 'pf_rel_iso' not in data.genselected_dimu_mu1.fields:
+                data=addPFIsolations({'sel':data})['sel']
+            mu1_iso_mask = data.genselected_dimu_mu1.pf_rel_iso < pfIsoThr
+            mu2_iso_mask = data.genselected_dimu_mu2.pf_rel_iso < pfIsoThr
+            mask =  mu1_iso_mask & mu2_iso_mask
+            data["genselected_dimu"]    =     data["genselected_dimu"][mask]     
+            data["genselected_dimu_mu1"]=     data["genselected_dimu_mu1"][mask] 
+            data["genselected_dimu_mu2"]=     data["genselected_dimu_mu2"][mask] 
+
+
+        dimu=data["genselected_dimu"]
+        ptd=dimu.pt
+        srtIdx=ak.argsort(ptd*-1)
+        data["genselected_dimu"]   =data["genselected_dimu"][srtIdx]
+        data["genselected_dimu_mu1"]=data["genselected_dimu_mu1"][srtIdx]
+        data["genselected_dimu_mu2"]=data["genselected_dimu_mu2"][srtIdx]
+
+        for col in ["genselected_dimu","genselected_dimu_mu1","genselected_dimu_mu2"]:
+            zero_fourvec=ak.zip({'pt':0,'eta':1e3,'phi':1e3,'mass':0.0},with_name='Momentum4D')
+            for ky in data[col].fields:
+                if ky not in ['eta','phi']:
+                    zero_fourvec[ky]=0.0
+            data[col]=ak.fill_none(ak.pad_none(data[col],1,axis=-1),zero_fourvec)
+
+        data["genselected_dimu"]    =ak.unflatten(data["genselected_dimu"][:,0],counts=1)
+        data["genselected_dimu_mu1"]=ak.unflatten(data["genselected_dimu_mu1"][:,0],counts=1)
+        data["genselected_dimu_mu2"]=ak.unflatten(data["genselected_dimu_mu2"][:,0],counts=1)
+
+    return dataStore
+
+
+
+
 
 def addSelectedDimuons(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,doDRSelection=False,d0Max=-1e4,puppiIsoThr=None,pfIsoThr=None):
     dataStore=addAllDimuonCombinations(dataStore)
@@ -230,7 +335,6 @@ def addSelectedDimuons(dataStore,pTMinMuon=0.0,etaMax=3.0,addTkIsoMask=True,doDR
             data["selected_dimu"]    =     data["selected_dimu"][mask]     
             data["selected_dimu_mu1"]=     data["selected_dimu_mu1"][mask] 
             data["selected_dimu_mu2"]=     data["selected_dimu_mu2"][mask] 
-
 
 
         dimu=data["selected_dimu"]
@@ -441,7 +545,7 @@ def getCategories(data,cfg):
     
     dimu_cat_event_mask =  ak.sum(catMask , axis = -1) > 0
     dimu_cat_event_inveted_mask = np.logical_not( dimu_cat_event_mask  )
-    print(ak.sum(dimu_cat_event_mask),ak.sum(dimu_cat_event_inveted_mask))
+    print("Msk/I_MASK : ",ak.sum(dimu_cat_event_mask),ak.sum(dimu_cat_event_inveted_mask))
     return data[dimu_cat_event_mask],data[dimu_cat_event_inveted_mask]
 
 def cleanEmptyDimuons(data,cleanEvents=False):    
@@ -458,9 +562,14 @@ def cleanEmptyDimuons(data,cleanEvents=False):
         data['matched_dimu_mu2']=data['matched_dimu_mu2'][mask]
 
     if 'selected_dimu' in data.fields:
-        mask = (data['selected_dimu_mu1'].pt > 0.0) & (data['selected_dimu_mu2'].pt > 0.0)
-        #print(len(mask))
-        #print(np.sum(mask))
+        
+        mask = data['selected_dimu_mu1'].pt > 0.0
+        #mask =ak.sum(mask,axis=-1) > 0
+        print(np.sum(mask))
+
+        #data=ak.with_field(data,data['selected_dimu'][mask],"selected_dimuX")
+        #data=ak.with_field(data,data['selected_dimu_mu1'][mask],"selected_dimu_mu1")
+        #data=ak.with_field(data,data['selected_dimu_mu2'][mask],"selected_dimu_mu2")
         #data=data[mask]
         data['selected_dimu']    =data['selected_dimu'][mask]
         data['selected_dimu_mu1']=data['selected_dimu_mu1'][mask]
@@ -477,7 +586,7 @@ def addPFIsolations(dataStore):
         data=dataStore[tag]
         for muBase in ['matchedDimuons','selected_dimu']:
             if muBase not in data.fields:
-                #print("      Skipping ",muBase," for ",tag)
+                print("      Skipping ",muBase," for ",tag)
                 continue
             print("  Adding PF Isolation to ",muBase)
             pCands=ak.zip( {ky.split("_")[1] : data[ky] for ky in data.fields  if 'L1PFCands_' in ky} ,with_name="Momentum4D")
@@ -486,6 +595,7 @@ def addPFIsolations(dataStore):
                 muX=data[f'{muBase}_{muTag}']
                 muO=data[f'{muBase}_{muOtag}']
                 if 'pf_rel_iso' in muX.fields:
+                    print("Skipping !")
                     continue
                 #zero_fourvec=ak.zip({'pt':0,'eta':0.0,'phi':0.0,'mass':0.0},with_name='Momentum4D')
                 #for ky in pCands.fields:

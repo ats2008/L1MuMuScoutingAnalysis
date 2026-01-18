@@ -67,8 +67,9 @@ def run_summaryAnalyzer():
     parser.add_argument("-i","--inputFile", help="Input summary Json",default=None)
     args = parser.parse_args()
     if args.inputFile is None:
-        base='results/analysis/v2/'
+        base='results/analysis/v6/'
         cats=['highptMuMuCentral','highptMuMuForward','MuMuCentral','MuMuForeward','inclusive','rest']
+        cats=['highptMuMu','inclusive','rest']
         cmdExtras=" "
 
         procFolders=glob.glob(base+'/*')
@@ -160,8 +161,8 @@ def run_summaryAnalyzer():
 
 
 def main():
-    mode='analysis'
     mode='summary'
+    mode='analysis'
     if mode=='analysis':
         run_histMaker()
     if mode=='summary':

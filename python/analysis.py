@@ -97,44 +97,39 @@ def main():
     
     dataStore=addGenMatchedMuonInformation(dataStore,pTMinMuon=2.0,etaMax=2.4)
     #dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,puppiIsoThr=None)
-    dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,puppiIsoThr=0.2001)
+    #dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,puppiIsoThr=0.2001)
+    dataStore=addSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,pfIsoThr=0.2001)
     #dataStore=addGenMatchedMuonInformation(dataStore,pTMinMuon=4.0,etaMax=1.9)
     #dataStore=addSelectedDimuons(dataStore,pTMinMuon=4.0,etaMax=1.9)
     
-    dataStore=addPFIsolations(dataStore)
+    #dataStore=addPFIsolations(dataStore)
     dataStore=addPuppiIsolation(dataStore)
-
+    
+    dataStore=addGenSelectedDimuons(dataStore,pTMinMuon=2.0,etaMax=2.4,addTkIsoMask=False,pfIsoThr=0.2001)
     cat_config={}
-    cat_config['highptMuMuCentral']={}
-    cat_config['highptMuMuCentral']['min_pt_mu1']=4.0
-    cat_config['highptMuMuCentral']['min_pt_mu2']=4.0
-    cat_config['highptMuMuCentral']['max_eta_mu1']=1.9
-    cat_config['highptMuMuCentral']['max_eta_mu2']=1.9
+    #cat_config['inclusive']={}
+    #cat_config['inclusive']['min_eta_mu2']= -50
+    cat_config['highptMuMu']={}
+    cat_config['highptMuMu']['min_pt_mu1']=4.0
+    cat_config['highptMuMu']['min_pt_mu2']=4.0
     
-    cat_config['highptMuMuForward']={}
-    cat_config['highptMuMuForward']['min_pt_mu1']=4.0
-    cat_config['highptMuMuForward']['min_pt_mu2']=4.0
-    cat_config['highptMuMuForward']['min_eta_mu1']=1.9
-    cat_config['highptMuMuForward']['min_eta_mu2']=1.9
-    cat_config['highptMuMuForward']['max_eta_mu1']=2.5
-    cat_config['highptMuMuForward']['max_eta_mu2']=2.5
+    #cat_config={}
+    #cat_config['MuMuCentral']={}
+    #cat_config['MuMuCentral']['max_eta_mu1']=1.9
+    #cat_config['MuMuCentral']['max_eta_mu2']=1.9
+    #
+    #cat_config['MuMuForeward']={}
+    #cat_config['MuMuForeward']['min_eta_mu1']=1.9
+    #cat_config['MuMuForeward']['min_eta_mu2']=1.9
+    #cat_config['MuMuForeward']['max_eta_mu1']=2.5
+    #cat_config['MuMuForeward']['max_eta_mu2']=2.5
     
-    cat_config['MuMuCentral']={}
-    cat_config['MuMuCentral']['max_eta_mu1']=1.9
-    cat_config['MuMuCentral']['max_eta_mu2']=1.9
-    
- 
-    cat_config['MuMuForeward']={}
-    cat_config['MuMuForeward']['min_eta_mu1']=1.9
-    cat_config['MuMuForeward']['min_eta_mu2']=1.9
-    cat_config['MuMuForeward']['max_eta_mu1']=2.5
-    cat_config['MuMuForeward']['max_eta_mu2']=2.5
-    
- 
-    
+
+
     categorizedData={}
     categorizedData['inclusive']=dataStore[tag]
     current=categorizedData['inclusive']
+    current=dataStore[tag]
     for ky in cat_config:
         current,rest=getCategories( current ,cat_config[ky] )
         categorizedData[ky]=current
@@ -149,11 +144,31 @@ def main():
     for ky in list(categorizedData.keys()):
         print(f"Processing {ky} with {len(categorizedData[ky])} events")
         data=categorizedData[ky]
-        data=cleanEmptyDimuons(data,cleanEvents=True)
+        if ky not in ['inclusive']:
+            data=cleanEmptyDimuons(data,cleanEvents=True)
         print(f"    After cleaning  {len(data)} events remains")
+        
+        mask= ak.num(data['genMuonCands']) > 1
+        gdimu= data['genMuonCands'][mask][:,0] +data['genMuonCands'][mask][:,1]  
+        print("he he ehe ",np.sum(mask))
+        ARRAY=gdimu.mass
+        BINS=np.arange(0.0,20.0,0.01)
+        NAME="genDimuMass"
+        DOC="Gen di-muons"
+        histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+        
+
+        ARRAY=ak.flatten(data['genselected_dimu'].mass)
+        BINS=np.arange(0.0,20.0,0.01)
+        NAME="genMatchedSelectedDimuMass"
+        DOC="Gen matched tk di-muons after sselections"
+        histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
+        
+
+
 
         ARRAY=ak.flatten(data['matchedDimuons'].mass)
-        BINS=np.arange(0.0,20.0,0.1)
+        BINS=np.arange(0.0,20.0,0.01)
         NAME="genMatchedDimuMass"
         DOC="Gen matched tk di-muons"
         histStore[NAME]  =getHistograms(ARRAY,bins=BINS,name=NAME,doc=DOC)
